@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skanna i order</title>
+  <style>
+    :root{
+      --bg:#ffffff;            /* sidans bakgrund */
+      --band:#e7e9e2;          /* ljusgrön/grå bandfärg i header */
+      --text:#0f172a;          /* huvudtext */
+      --muted:#697386;         /* sekundär text */
+      --line:#1f2937;          /* mörk kantlinje */
+      --accent:#274c9b;        /* ikonfärg (blå) */
+    }
+
+    html,body{ height:100%; margin:0; background:var(--bg); color:var(--text); font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+    /* =============== Layout-grid =============== */
+    .wrap{ max-width: 1520px; margin: 0 auto; padding: 10px 16px 32px; }
+
+    /* =============== Header =============== */
+    .header{ position:relative; display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap: 24px; margin: 6px 0 18px; }
+
+    .band{
+      height: 22px;
+      background: var(--band);
+      border-radius: 2px;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 11px; color:#4b5563;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+      overflow:hidden;
+    }
+    .band .line{ position:absolute; height:4px; background: rgba(0,0,0,.06); top:24px; left:0; right:0; display:none }
+
+    .logo{
+      width: 34px; height: 34px; border-radius:999px; border:3px solid #4159b7; display:grid; place-items:center; margin: 0 auto;
+      box-shadow: 0 0 0 2px #dfe6ff inset;
+    }
+    .logo:before{ content:""; width: 12px; height: 12px; border: 3px solid #4159b7; border-radius:999px; }
+
+    .logout{ text-align:right; font-size:11px; color:#4b5563; }
+
+    /* =============== Sektion: Skanna i order =============== */
+    .section-title{ font-size: 22px; font-weight: 600; margin: 8px 0 8px; }
+
+    .scan-bar{ position:relative; margin-top: 4px; }
+
+    .toolbar{
+      position:absolute; top:-18px; right:10px; display:flex; gap:14px; align-items:center;
+    }
+    .icon{ width:18px; height:18px; display:inline-grid; place-items:center; color:#1e3a8a }
+    .icon svg{ width:18px; height:18px; display:block }
+
+    .input{
+      width:100%; height: 34px; border: 2px solid var(--line); border-radius: 4px; padding: 0 10px; font-size:14px; outline:none;
+    }
+    .input:focus{ box-shadow: 0 0 0 2px rgba(56,106,203,.15); }
+
+    /* Stor vit yta */
+    .canvas-space{ min-height: 50vh; }
+
+    /* ======= Responsivitet ======= */
+    @media (max-width: 900px){
+      .header{ grid-template-columns: 1fr auto 1fr; gap:12px }
+      .band{ height: 26px; font-size:12px; padding: 0 6px }
+      .section-title{ font-size: 20px }
+    }
+    
+    /* ===== Info-panel (över input) ===== */
+    .info-panel{ display:none; background: var(--band); border-radius: 2px; padding:8px 12px; margin: 6px 0 8px; font-size:13px; color:#374151; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);}
+    .info-grid{ display:grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap:10px; align-items:center; }
+    .info-item{ display:flex; flex-direction:column; gap:2px; }
+    .info-label{ font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.04em; }
+    .info-value{ font-weight:600; color:#111827; }
+    .qty-row{ display:flex; align-items:center; gap:8px; margin-top:6px; font-size:13px; }
+    .qty{ font-weight:700; }
+    .badge{ display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:600; color:#7f1d1d; background:#fdecec; border:1px solid #f8b4b4; }
+    .muted-note{ font-size:11px; color:#6b7280; }
+    
+    /* Statusmeddelande */
+    .status-message {
+      padding: 8px 12px;
+      margin: 8px 0;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
+    .status-success {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .status-error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    
+    /* Knappar */
+    .button-container {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .button-close {
+      width: 100%;
+      padding: 10px;
+      background: var(--band);
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4b5563;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+    }
+    .button-cancel {
+      width: 50%;
+      padding: 10px;
+      background: var(--band);
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4b5563;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+      align-self: flex-start;
+    }
+    .completion-message {
+      display: none;
+      background: var(--band);
+      border-radius: 2px;
+      padding: 16px;
+      margin: 12px 0;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      color: #374151;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+    }
+    
+    /* Varningsmodal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background-color: white;
+      border-radius: 8px;
+      padding: 24px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1f2937;
+    }
+    .modal-message {
+      font-size: 16px;
+      margin-bottom: 24px;
+      color: #4b5563;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .modal-button {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .modal-button-report {
+      background-color: #ef4444;
+      color: white;
+    }
+    .modal-button-continue {
+      background-color: #e5e7eb;
+      color: #4b5563;
+    }
+    
+    /* =============== PILLAR PÅ HÖGER SIDA =============== */
+    .pillar-container {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 100;
+    }
+    .pillar {
+      width: 40px;
+      height: 60px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+      position: relative;
+    }
+    .pillar:hover {
+      width: 180px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 101;
+    }
+    .pillar-symbol {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-right: 10px;
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+    }
+    .autostore { background: #ef4444; }
+    .buffert   { background: #f59e0b; }
+    .pillar-content { white-space: nowrap; opacity: 0; transition: opacity 0.2s ease; font-size: 12px; font-weight: 500; color: white; }
+    .pillar:hover .pillar-content { opacity: 1; }
+    
+    /* =============== AUTOSTORE/BUFFERT RUTA =============== */
+    /* Dold från start och lika bred som textrutan (100%) */
+    .type-selector {
+      display: none;                 /* <-- dold tills 'sscc' */
+      width: 100%;                   /* <-- samma bredd som input */
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .type-display {
+      flex: 1;
+      height: 34px;                  /* matchar .input-höjd */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-weight: 600;
+      color: white;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+    }
+    .type-display.autostore { background: #ef4444; }
+    .type-display.buffert   { background: #f59e0b; }
+
+    .change-type-btn {
+      height: 34px;                  /* matchar .input-höjd */
+      padding: 0 12px;
+      background: var(--band);
+      border: 2px solid var(--line);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4b5563;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- HEADER -->
+    <header class="header" aria-label="Sidhuvud">
+      <div class="band">→ Inleverans</div>
+      <div class="logo" aria-label="Logotyp"></div>
+      <div class="band logout">Logga ut (Ninos)</div>
+    </header>
+
+    <!-- INNEHÅLL -->
+    <main>
+      <h1 class="section-title">Skanna i order</h1>
+
+      <!-- Statusmeddelanden -->
+      <div id="statusMessage" class="status-message" role="alert"></div>
+
+      <!-- Autostore/Buffert väljare (DOLD från start, visas efter 'sscc') -->
+      <div id="typeSelector" class="type-selector">
+        <div id="typeDisplay" class="type-display autostore">AUTOSTORE</div>
+        <button id="changeTypeBtn" class="change-type-btn">Byt</button>
+      </div>
+
+      <!-- Info-panel: över textrutan (dold från start) -->
+      <div id="infoPanel" class="info-panel" role="status" aria-live="polite" style="display:none;">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Inköpsorder</span>
+            <span class="info-value" id="poValue">77777</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">SSCC</span>
+            <span class="info-value" id="ssccValue">07XXXXXXXXXXXXXXXX</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Artikel</span>
+            <span class="info-value" id="skuValue">XXXXX-black-L</span>
+          </div>
+        </div>
+        <div class="qty-row">
+          <span>Antal skannade:</span>
+          <span class="qty" id="scannedQty">0</span>
+          <span class="muted-note">/ 5</span>
+          <span id="overBadge" class="badge" style="display:none;">Överleverans</span>
+        </div>
+      </div>
+
+      <div class="scan-bar">
+        <div class="toolbar" aria-hidden="false">
+          <!-- kugghjul -->
+          <span class="icon" title="Inställningar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.39 1.26 1 1.51.32.13.67.2 1.02.2H21a2 2 0 1 1 0 4h-.09c-.35 0-.7.07-1.02.2-.61.25-1 .85-1 1.51Z"/>
+            </svg>
+          </span>
+          <!-- frågetecken -->
+          <span class="icon" title="Hjälp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4"/>
+              <path d="M12 17h.01"/>
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+          </span>
+        </div>
+        <form id="scanForm" action="#">
+          <input id="scanInput" class="input" type="text" placeholder="Skriv 'sscc' och tryck Enter" aria-label="Skanna i order" />
+          <button type="submit" style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden">Skicka</button>
+        </form>
+        
+        <!-- Knappcontainer -->
+        <div id="buttonContainer" class="button-container">
+          <button id="closeButton" class="button-close">Close</button>
+          <button id="cancelButton" class="button-cancel">Avbryt</button>
+        </div>
+      </div>
+
+      <!-- Slutmeddelande -->
+      <div id="completionMessage" class="completion-message"></div>
+
+      <div class="canvas-space"></div>
+    </main>
+  </div>
+
+  <!-- PILLAR PÅ HÖGER SIDA -->
+  <div class="pillar-container">
+    <div class="pillar buffert">
+        
+      <div class="pillar-symbol">B</div>
+      
+
+      <div class="pillar-content">078912345678901234</div>
+    </div>
+    <div class="pillar buffert">
+      <div class="pillar-symbol">B</div>
+      <div class="pillar-content">078912345678901235</div>
+    </div>
+    <div class="pillar autostore">
+      <div class="pillar-symbol">A</div>
+      <div class="pillar-content">078912345678901236</div>
+    </div>
+    <div class="pillar buffert">
+      <div class="pillar-symbol">B</div>
+      <div class="pillar-content">078912345678901237</div>
+    </div>
+    <div class="pillar buffert">
+      <div class="pillar-symbol">B</div>
+      <div class="pillar-content">078912345678901238</div>
+    </div>
+  </div>
+
+  <!-- Varningsmodal -->
+  <div id="warningModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 class="modal-title" id="modalTitle">Varning</h2>
+      <p class="modal-message" id="modalMessage"></p>
+      <div class="modal-buttons">
+        <button id="reportButton" class="modal-button modal-button-report">Rapportera</button>
+        <button id="continueButton" class="modal-button modal-button-continue">Fortsätt skanna</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const input = document.getElementById('scanInput');
+      const form = document.getElementById('scanForm');
+      const panel = document.getElementById('infoPanel');
+      const qtyEl = document.getElementById('scannedQty');
+      const over = document.getElementById('overBadge');
+      const statusMessage = document.getElementById('statusMessage');
+      const buttonContainer = document.getElementById('buttonContainer');
+      const closeButton = document.getElementById('closeButton');
+      const cancelButton = document.getElementById('cancelButton');
+      const completionMessage = document.getElementById('completionMessage');
+      
+      // Modal element
+      const warningModal = document.getElementById('warningModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalMessage = document.getElementById('modalMessage');
+      const reportButton = document.getElementById('reportButton');
+      const continueButton = document.getElementById('continueButton');
+      
+      // Type selector elements (dold från start)
+      const typeSelector = document.getElementById('typeSelector');
+      const typeDisplay = document.getElementById('typeDisplay');
+      const changeTypeBtn = document.getElementById('changeTypeBtn');
+
+      const TARGET = 5;
+      let qty = 0;
+      let active = false;
+      let currentType = 'autostore'; // autostore eller buffert
+
+      // Funktion för att byta typ
+      function toggleType() {
+        if (currentType === 'autostore') {
+          currentType = 'buffert';
+          typeDisplay.textContent = 'BUFFERT';
+          typeDisplay.className = 'type-display buffert';
+        } else {
+          currentType = 'autostore';
+          typeDisplay.textContent = 'AUTOSTORE';
+          typeDisplay.className = 'type-display autostore';
+        }
+      }
+      changeTypeBtn.addEventListener('click', toggleType);
+
+      function showStatus(message, isSuccess = true) {
+        statusMessage.textContent = message;
+        statusMessage.className = isSuccess ? 'status-message status-success' : 'status-message status-error';
+        statusMessage.style.display = 'block';
+        setTimeout(() => { statusMessage.style.display = 'none'; }, 3000);
+      }
+
+      function showPanel(){
+        // Visa typ-rutan *och* info-panelen när 'sscc' är inmatad
+        typeSelector.style.display = 'flex';
+        panel.style.display = 'block';
+        buttonContainer.style.display = 'flex';
+        qty = 0; 
+        qtyEl.textContent = qty; 
+        over.style.display = 'none';
+        active = true;
+        completionMessage.style.display = 'none';
+        showStatus('SSCC skannat! Du kan nu börja skanna artiklar med "1".');
+      }
+
+      function resetAll() {
+        // Dölj typ-rutan igen vid reset
+        typeSelector.style.display = 'none';
+        panel.style.display = 'none';
+        buttonContainer.style.display = 'none';
+        completionMessage.style.display = 'none';
+        active = false;
+        input.value = '';
+        input.focus();
+      }
+
+      function handleSubmit(value){
+        const v = (value || '').trim().toLowerCase();
+        if(!v) return;
+        
+        // Trigga panel + typ-ruta när texten är 'sscc' eller 'iskanna order sscc'
+        if(v === 'sscc' || v === 'iskanna order sscc'){
+          showPanel();
+          input.value = '';
+          return;
+        }
+        
+        if(!active) {
+          showStatus('Vänligen skanna SSCC först genom att skriva "sscc"', false);
+          input.value = '';
+          return;
+        }
+        
+        if(v === '1'){
+          qty += 1;
+          qtyEl.textContent = qty;
+          
+          if(qty === TARGET) {
+            showStatus(`Bra jobbat! Du har nått målet på ${TARGET} artiklar.`);
+          } else if(qty > TARGET){ 
+            over.style.display = 'inline-flex'; 
+            over.textContent = `Överleverans +${qty - TARGET}`; 
+            showStatus(`Överleverans! Du har skannat ${qty - TARGET} fler än målet.`, false);
+          }
+          
+          input.value = '';
+          return;
+        }
+        
+        // Ogiltigt kommando
+        showStatus('Ogiltigt kommando. Använd "sscc" eller "1" för att skanna.', false);
+        input.value = '';
+      }
+
+      // Visa varningsmodal om antalet inte stämmer
+      function showWarningModal() {
+        const difference = Math.abs(qty - TARGET);
+        const missing = qty < TARGET;
+        
+        modalTitle.textContent = missing ? "Artiklar saknas" : "För många artiklar";
+        modalMessage.textContent = missing 
+          ? `Du har skannat ${qty} av  ${TARGET} av Art.nr: XXXXX-Black-L. Det saknas ${difference} pcs${difference !== 1 ? '' : ''}. Vill du rapportera detta eller fortsätta skanna?`
+          : `Du har skannat ${qty} pcs av Art.nr: XXXXX-Black-L, men bara ${TARGET} förväntades. Det är ${difference} pcs${difference !== 1 ? '' : ''} för mycket. Vill du rapportera detta eller fortsätta skanna?`;
+        
+        warningModal.style.display = 'flex';
+      }
+
+      // Close-knappen
+      closeButton.addEventListener('click', () => {
+        if (qty !== TARGET) {
+          showWarningModal();
+        } else {
+          completionMessage.textContent = `Du levererade ${qty} artiklar`;
+          completionMessage.style.display = 'block';
+          panel.style.display = 'none';
+          buttonContainer.style.display = 'none';
+          active = false;
+          input.value = '';
+          input.focus();
+        }
+      });
+
+      // Rapportera i modalen
+      reportButton.addEventListener('click', () => {
+        const difference = Math.abs(qty - TARGET);
+        const missing = qty < TARGET;
+        warningModal.style.display = 'none';
+        completionMessage.textContent = missing
+          ? `Rapporterat: ${difference} saknad artikel har rapporterats. Du levererade ${qty} artiklar.`
+          : `Rapporterat: ${difference} extra artikel har rapporterats. Du levererade ${qty} artiklar.`;
+        completionMessage.style.display = 'block';
+        panel.style.display = 'none';
+        buttonContainer.style.display = 'none';
+        active = false;
+        input.value = '';
+        input.focus();
+        showStatus(missing 
+          ? `Saknade artiklar rapporterade. ${difference} artikel${difference !== 1 ? 'ar' : ''} saknas.` 
+          : `Extra artiklar rapporterade. ${difference} artikel${difference !== 1 ? 'ar' : ''} för mycket.`, 
+        false);
+      });
+
+      // Fortsätt skanna i modalen
+      continueButton.addEventListener('click', () => {
+        warningModal.style.display = 'none';
+        input.focus();
+      });
+
+      // Avbryt-knappen
+      cancelButton.addEventListener('click', () => {
+        resetAll();
+        showStatus('Skanningen avbröts. Du kan börja om med att skanna SSCC.');
+      });
+
+      // Enter i inputfältet
+      input.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          handleSubmit(input.value);
+        }
+      });
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        handleSubmit(input.value);
+      });
+      
+      // Fokus vid laddning
+      input.focus();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logga in</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <!-- Inloggningsskärm -->
+  <div id="login-screen" class="login">
+    <div class="card">
+      <h1>Logga in</h1>
+      <p class="muted">Ange användarnamn och lösenord</p>
+      <input type="text" id="username" placeholder="Användarnamn" />
+      <input type="password" id="password" placeholder="Lösenord" />
+      <button onclick="checkLogin()">Logga in</button>
+      <p id="error" style="color:#ff6b6b; display:none;">Fel användarnamn eller lösenord</p>
+    </div>
+  </div>
+
+  <script>
+    function checkLogin(){
+      const u = document.getElementById("username").value;
+      const p = document.getElementById("password").value;
+      if(u === "admin" && p === "admin"){
+        // Skicka vidare till din presentation
+        window.location.href = "index.html";
+      } else {
+        document.getElementById("error").style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>

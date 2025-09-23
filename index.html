@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Min HTML/CSS-presentation</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ====== Minimal extra-styles för modaler och galleri ====== */
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999}
+    .backdrop.open{display:flex}
+
+    /* Blur-variant för summa-fönstret */
+    .backdrop.blur{
+      background:rgba(0,0,0,.22);
+      backdrop-filter:blur(12px) saturate(120%);
+      -webkit-backdrop-filter:blur(12px) saturate(120%);
+    }
+
+    .modal{background:#fff;max-width:min(1100px,94vw);width:1100px;max-height:90vh;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}
+    .modal header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee}
+    .modal header h2{font-size:18px;margin:0}
+    .modal .body{position:relative;flex:1;overflow:auto}
+    .modal iframe{display:block;width:100%;height:70vh;border:0}
+    .modal .actions{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;border-top:1px solid #eee}
+    .iconbtn{background:#f5f5f5;border:1px solid #e6e6e6;border-radius:10px;padding:8px 12px;cursor:pointer}
+    .iconbtn:hover{background:#efefef}
+
+    /* Länk som ser ut som vanlig text men är klickbar */
+    .linklike{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-decoration:none;cursor:pointer}
+    .linklike:hover{text-decoration:underline}
+
+    /* Panels sida vid sida */
+    .split{display:flex;gap:16px;padding:12px}
+    .tabPanel{flex:1;min-width:0;border:1px solid #eee;border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+    .tabPanel header{padding:10px 14px;border-bottom:1px solid #eee;font-weight:600}
+
+    /* Enkel karusell */
+    .carousel{position:relative;display:flex;align-items:center;justify-content:center;background:#fafafa;aspect-ratio:16/10}
+    .carousel img{max-width:100%;max-height:100%;display:block}
+    .navBtn{position:absolute;top:50%;transform:translateY(-50%);border:0;background:rgba(0,0,0,.55);color:#fff;width:42px;height:42px;border-radius:50%;font-size:22px;line-height:1;cursor:pointer}
+    .navPrev{left:8px}
+    .navNext{right:8px}
+
+    .imgFit{display:block;width:100%;height:auto;object-fit:contain;background:#fafafa}
+    .hSmall{font-size:clamp(18px,3vw,26px);line-height:1.25;margin:0 0 8px}
+    .strike{ text-decoration: line-through; color:#6b7280; }
+
+    /* År-slide knappar och innehåll */
+    .yearBtn{
+      font-size:clamp(2.6rem, 6vw, 3.6rem);
+      line-height:1.1;
+      font-weight:800;
+      letter-spacing:0.02em;
+    }
+    .yearInfo{
+      font-size:clamp(1.6rem, 4vw, 2.2rem);
+      font-weight:700;
+      margin-top:6px;
+    }
+
+    /* ===== Kalkyl – lite mindre, matchar övrig stil ===== */
+    .calcRow{
+      display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:16px;
+      margin:6px 0;
+    }
+    .calcInput{
+      width:110px; max-width:36vw;
+      padding:6px 8px; border-radius:10px; border:1px solid #ddd; font-size:16px;
+      outline:none;
+      background:transparent; color:inherit;
+    }
+    .calcInput:focus{border-color:#bbb; box-shadow:0 0 0 3px rgba(0,0,0,0.05)}
+    .calcEq{font-weight:700}
+    .calcResult{font-size:20px;font-weight:800;white-space:nowrap}
+    .muted{color:#6b7280}
+
+    /* Plus-knapp mellan raderna */
+    .bigPlusWrap{display:flex;justify-content:center;align-items:center;margin:6px 0}
+    .bigPlus{
+      appearance:none;border:0;background:none;cursor:pointer;
+      font-size:clamp(2.4rem,5vw,3.2rem);line-height:1;border-radius:12px;padding:2px 10px;
+    }
+    .bigPlus:hover{background:rgba(0,0,0,0.05)}
+
+    /* Summa-dialogen – glas/transparent */
+    #sumModal{
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.22);
+      backdrop-filter:blur(16px) saturate(140%);
+      -webkit-backdrop-filter:blur(16px) saturate(140%);
+      color:#fff;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    #sumModal header,
+    #sumModal .actions{
+      border:0; background:transparent; color:#fff;
+    }
+    #sumModal .iconbtn{
+      background:rgba(255,255,255,0.12);
+      border-color:rgba(255,255,255,0.25);
+      color:#fff;
+    }
+
+    .sumValue{
+      font-size:clamp(2.2rem, 6vw, 3.4rem);
+      font-weight:900; text-align:center; padding:18px 10px;
+    }
+
+    @media (max-width: 900px){
+      .modal{width:95vw}
+      .split{flex-direction:column}
+      .calcInput{width:95px}
+      .calcRow{font-size:15px}
+      .calcResult{font-size:19px}
+    }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck" aria-live="polite">
+    <!-- SLIDE 1 -->
+    <section class="slide active" data-title="Titel">
+      <div class="card">
+        <span class="tag">Presentation</span>
+        <h1>Chrome Extension</h1>
+        <h2>Inleverans – Avvik-notering / debitering</h2>
+        <p class="muted">Av: Ninos Chimon • 25 September 2025</p>
+        <a class="cta" href="#" onclick="nextSlide(); return false;">Börja ▶</a>
+      </div>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="slide" data-title="Agenda">
+      <div class="card">
+        <br><br><br>
+        <h1>Inleverans process</h1>
+        <ul>
+          <br><br>
+          <li><a href="#" id="openScanning" class="linklike" aria-haspopup="dialog" aria-controls="scanModal" role="link">Scanning</a></li>
+          <li><a href="#" id="openDeviation" class="linklike" aria-haspopup="dialog" aria-controls="devModal" role="link">Avvikelse notering</a></li>
+          <li><a href="#" id="openASN" class="linklike" aria-haspopup="dialog" aria-controls="asnModal" role="link">ASN-kontroll</a></li>
+          <li>Claims</li>
+          <li>Lagerlagd</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 -->
+    <section class="slide" data-title="Punkter">
+      <div class="card">
+        <br><br>
+        <h2 class="hSmall">Hur lång tid tar vår process idag?</h2>
+        <ul>
+          <br><br>
+          <li>Scanning</li>
+          <li>Avvikelse-notering</li>
+          <li>ASN-kontroll</li>
+          <li>Claims</li>
+          <li id="timeItem">
+            <button id="revealBtn" class="linklike" aria-expanded="false" aria-controls="timeAnswer">
+              Det tar ⇒
+            </button>
+            <span id="timeAnswer" hidden>från 5 till 7.5 minuter för varje avvikelse</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SLIDE 3B -->
+    <section class="slide" data-title="Agenda">
+      <div class="card">
+        <br><br><br>
+        <h2>Inleverans process med extension</h2>
+        <ul>
+          <br><br>
+          <li><a href="#" id="openScanning2" class="linklike" aria-haspopup="dialog" aria-controls="scan2Modal" role="link">Scanning</a></li>
+          <li><span class="strike">Avvikelse notering</span></li>
+          <li><a href="#" id="openASN2" class="linklike" aria-haspopup="dialog" aria-controls="asn2Modal" role="link">ASN-kontroll (Mycket lättre)</a></li>
+          <li><span class="strike">Claims</span></li>
+          <li>Lagerlagd</li>
+          <li id="timeItem2">
+            <button id="revealBtn2" class="linklike" aria-expanded="false" aria-controls="timeAnswer2">
+              Det tar ⇒
+            </button>
+            <span id="timeAnswer2" hidden>Max 10 sekunder för varje avvikelse</span>
+          </li>
+          <li>AUTOSTORE_IN</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 År -->
+    <section class="slide" data-title="År">
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:60vh;gap:14px;">
+        <!-- 2024 -->
+        <button id="year2024Btn" class="linklike yearBtn" aria-expanded="false" aria-controls="year2024Content">
+          2024
+        </button>
+        <div id="year2024Content" hidden class="muted yearInfo">
+          1449 avvikelser
+        </div>
+
+        <!-- 2025 -->
+        <button id="year2025Btn" class="linklike yearBtn" aria-haspopup="dialog" aria-controls="year2025Modal" role="link" style="margin-top:10px;">
+          2025
+        </button>
+      </div>
+    </section>
+    
+    <!-- SLIDE 5 Debitering -->
+    <section class="slide" data-title="Debitering">
+      <div class="card" style="display:flex;justify-content:center;align-items:center;min-height:60vh;">
+        <button id="openDeb" class="linklike" aria-haspopup="dialog" aria-controls="debModal" role="link" style="font-size:2.5rem;">
+          Debitering
+        </button>
+      </div>
+    </section>
+
+    <!-- SLIDE 6 Kalkyl (mindre rader + plus) -->
+    <section class="slide" data-title="Kostnadsberäkning">
+      <div class="card">
+        <h2 style="margin:14px 14px 6px;">Kostnadsberäkning</h2>
+        <br>
+        <!-- Rad 1 -->
+        <div class="calcRow" style="padding:0 14px;">
+          <label for="calcA_count">Avvikelser</label>
+          <input id="calcA_count" class="calcInput" type="number" min="0" step="1" placeholder="t.ex. 12" inputmode="numeric" />
+          <span class="calcEq">×</span>
+          <label for="calcA_min">minuter</label>
+          <input id="calcA_min" class="calcInput" type="number" min="0" step="0.1" placeholder="t.ex. 5" inputmode="decimal" />
+          <span class="calcEq"> ×</span>
+          <label for="calcA_rate">Anställdas kostnad</label>
+          <input id="calcA_rate" class="calcInput" type="number" min="0" step="0.1" placeholder="t.ex. 350" inputmode="decimal" />
+          <span class="calcEq">=</span>
+          <span id="calcA_result" class="calcResult">0 kr</span>
+        </div>
+        <br>
+        <!-- Plus-knapp -->
+        <div class="bigPlusWrap">
+          <button id="openSum" class="bigPlus linklike" aria-haspopup="dialog" aria-controls="sumModal" title="Visa summa (rad 1 + rad 2)">+</button>
+        </div>
+        <br>
+        <!-- Rad 2 -->
+        <div class="calcRow" style="padding:0 14px 10px;">
+          <label for="calcB_count">Avvikelser</label>
+          <input id="calcB_count" class="calcInput" type="number" min="0" step="1" placeholder="t.ex. 12" inputmode="numeric" />
+          <span class="calcEq">×</span>
+          <label for="calcB_min">minuter</label>
+          <input id="calcB_min" class="calcInput" type="number" min="0" step="0.1" placeholder="t.ex. 5" inputmode="decimal" />
+          <span class="calcEq"> ×</span>
+          <label for="calcB_rate">Debitering/timme</label>
+          <input id="calcB_rate" class="calcInput" type="number" min="0" step="0.1" placeholder="t.ex. 500" inputmode="decimal" />
+          <span class="calcEq">=</span>
+          <span id="calcB_result" class="calcResult">0 kr</span>
+        </div>
+
+        <p class="muted" style="padding:0 14px 14px;">Formel: avvikelser × minuter ÷ 60 × timpris</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 Avslut -->
+    <section class="slide" data-title="Tack">
+      <div class="card">
+        <h1>Tack! 🙌</h1>
+        <p>Frågor? Kontakta mig på ninos.nina@hotmail.com <span class="muted"></span></p>
+      </div>
+    </section>
+
+    <!-- Kontroller -->
+    <footer class="controls">
+      <div class="btns">
+        <button class="btn" id="prev" aria-label="Föregående (←)">← Föregående</button>
+        <button class="btn" id="next" aria-label="Nästa (→)">Nästa →</button>
+      </div>
+      <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+      <div class="muted" id="counter">1 / 7</div>
+    </footer>
+  </div>
+
+  <!-- ===== Modal: SCANNING (iframe) ===== -->
+  <div class="backdrop" id="scanBackdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="scanTitle" id="scanModal">
+      <header>
+        <h2 id="scanTitle">Scanning – förhandsvisning</h2>
+        <button class="iconbtn" id="closeScan" aria-label="Stäng dialog">✕</button>
+      </header>
+      <div class="body">
+        <iframe id="scanFrame" title="Scanning-demo" src="scanning.html"></iframe>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="openInNew">Öppna i ny flik</button>
+        <button class="iconbtn" id="closeScanBottom">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: AVVIKELSE NOTERING ===== -->
+  <div class="backdrop" id="devBackdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="devTitle" id="devModal">
+      <header><button class="iconbtn" id="closeDev" aria-label="Stäng dialog">✕</button></header>
+      <div class="body">
+        <div class="split">
+          <div class="tabPanel"><div class="carousel" id="carA"><button class="navBtn navPrev">‹</button><img alt="Bild" /><button class="navBtn navNext">›</button></div></div>
+          <div class="tabPanel"><div class="carousel" id="carB"><button class="navBtn navPrev">‹</button><img alt="Bild" /><button class="navBtn navNext">›</button></div></div>
+        </div>
+      </div>
+      <div class="actions"><button class="iconbtn" id="closeDevBottom">Stäng</button></div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: ASN-KONTROLL ===== -->
+  <div class="backdrop" id="asnBackdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="asnTitle" id="asnModal">
+      <header>
+        <h2 id="asnTitle"></h2>
+        <button class="iconbtn" id="closeAsn" aria-label="Stäng dialog">✕</button>
+      </header>
+      <div class="body">
+        <div class="split">
+          <div class="tabPanel">
+            <header></header>
+            <img src="7.PNG" alt="ASN referens" class="imgFit" />
+          </div>
+        </div>
+      </div>
+      <div class="actions"></div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: SCANNING2 (iframe) ===== -->
+  <div class="backdrop" id="scan2Backdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="scan2Title" id="scan2Modal">
+      <header>
+        <button class="iconbtn" id="closeScan2" aria-label="Stäng dialog">✕</button>
+      </header>
+      <div class="body">
+        <iframe id="scan2Frame" title="Scanning2-demo" src="scanning2.html"></iframe>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="openInNew2">Öppna i ny flik</button>
+        <button class="iconbtn" id="closeScan2Bottom">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: ASN-KONTROLL2 (TVÅ BILDER) ===== -->
+  <div class="backdrop" id="asn2Backdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="asn2Title" id="asn2Modal">
+      <header>
+        <h2 id="asn2Title">ASN-kontroll2</h2>
+        <button class="iconbtn" id="closeAsn2" aria-label="Stäng dialog">✕</button>
+      </header>
+      <div class="body">
+        <div class="split">
+          <div class="tabPanel">
+            <header>Bild 1</header>
+            <img src="7.png" alt="ASN bild 7" class="imgFit" />
+          </div>
+          <div class="tabPanel">
+            <header>Bild 2</header>
+            <img src="8.png" alt="ASN bild 8" class="imgFit" />
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="closeAsn2Bottom">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: DEBITERING (iframe) ===== -->
+  <div class="backdrop" id="debBackdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="debTitle" id="debModal">
+      <header>
+        <h2 id="debTitle">Debitering</h2>
+        <button class="iconbtn" id="closeDeb" aria-label="Stäng dialog">✕</button>
+      </header>
+      <div class="body">
+        <iframe id="debFrame" title="Debitering-demo" src="deb.html"></iframe>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="openInNewDeb">Öppna i ny flik</button>
+        <button class="iconbtn" id="closeDebBottom">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: 2025-bild ===== -->
+  <div class="backdrop" id="year2025Backdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="year2025Title" id="year2025Modal">
+      <header>
+        <h2 id="year2025Title">2025</h2>
+        <button class="iconbtn" id="closeYear2025" aria-label="Stäng dialog">✕</button>
+      </header>
+      <div class="body">
+        <div class="split" style="padding:0">
+          <div class="tabPanel" style="border:none">
+            <img src="9.jpg" alt="2025 – bild" class="imgFit" />
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="closeYear2025Bottom">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: SUMMA (glas/transparent + blurad bakgrund) ===== -->
+  <div class="backdrop blur" id="sumBackdrop" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sumTitle" id="sumModal" style="max-width:min(600px,90vw);width:600px">
+      <header>
+        <h2 id="sumTitle">Total summa</h2>
+        <button class="iconbtn" id="closeSumTop" aria-label="Stäng dialog">✕</button>
+      </header>
+      <div class="body" style="display:flex;align-items:center;justify-content:center;">
+        <div id="sumValue" class="sumValue">0 kr</div>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="closeSumBottom">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Presentation =====
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const bar = document.getElementById('bar');
+    const counter = document.getElementById('counter');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+
+    function setToday(){
+      const el = document.getElementById('today');
+      if(!el) return;
+      const d = new Date();
+      el.textContent = d.toLocaleDateString('sv-SE',{year:'numeric',month:'2-digit',day:'2-digit'});
+    }
+    setToday();
+
+    function show(i){
+      const clamped=Math.max(0,Math.min(i,slides.length-1));
+      slides.forEach((s,idx)=> s.classList.toggle('active', idx===clamped));
+      if(bar) bar.style.width=((clamped+1)/slides.length*100)+"%";
+      if(counter) counter.textContent=`${clamped+1} / ${slides.length}`;
+      location.hash=`#${clamped+1}`;
+      const title = slides[clamped].dataset.title || `Slide ${clamped+1}`;
+      document.title=`${title} – HTML/CSS-presentation`;
+    }
+    function currentIndex(){const h=location.hash.replace('#','');const n=parseInt(h,10);return isNaN(n)?0:Math.max(0,Math.min(n-1,slides.length-1));}
+    function nextSlide(){show(currentIndex()+1);} function prevSlide(){show(currentIndex()-1);}
+    show(currentIndex());
+    window.addEventListener('hashchange',()=>show(currentIndex()));
+    document.addEventListener('keydown',e=>{
+      const tag=(e.target&&e.target.tagName)||'';if(tag==='INPUT'||tag==='TEXTAREA'||e.metaKey||e.ctrlKey)return;
+      if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();nextSlide();}
+      if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();prevSlide();}
+      if(e.key==='Home'){e.preventDefault();show(0);}
+      if(e.key==='End'){e.preventDefault();show(slides.length-1);}
+    });
+    nextBtn?.addEventListener('click',nextSlide); prevBtn?.addEventListener('click',prevSlide);
+
+    // ===== Modaler helper =====
+    let lastFocused=null;
+    function openAny(backdropEl,focusEl){lastFocused=document.activeElement;backdropEl.classList.add('open');document.body.style.overflow='hidden';if(focusEl)focusEl.focus();}
+    function closeAny(backdropEl){backdropEl.classList.remove('open');document.body.style.overflow='';if(lastFocused)lastFocused.focus();}
+
+    // ===== Scanning 1 =====
+    const openScanningBtn=document.getElementById('openScanning');
+    const scanBackdrop=document.getElementById('scanBackdrop');
+    const closeScanTop=document.getElementById('closeScan');
+    const closeScanBottom=document.getElementById('closeScanBottom');
+    const openInNew=document.getElementById('openInNew');
+    const frame=document.getElementById('scanFrame');
+    function openScanModal(src){if(src)frame.src=src;openAny(scanBackdrop,closeScanTop);}
+    function closeScanModal(){closeAny(scanBackdrop);}
+    openScanningBtn?.addEventListener('click',e=>{e.preventDefault();openScanModal('scanning.html');});
+    scanBackdrop?.addEventListener('click',e=>{if(e.target===scanBackdrop)closeScanModal();});
+    closeScanTop?.addEventListener('click',closeScanModal);
+    closeScanBottom?.addEventListener('click',closeScanModal);
+    openInNew?.addEventListener('click',()=>window.open(frame.src,'_blank','noopener'));
+
+    // ===== Scanning 2 =====
+    const openScanning2Btn=document.getElementById('openScanning2');
+    const scan2Backdrop=document.getElementById('scan2Backdrop');
+    const closeScan2Top=document.getElementById('closeScan2');
+    const closeScan2Bottom=document.getElementById('closeScan2Bottom');
+    const openInNew2=document.getElementById('openInNew2');
+    const frame2=document.getElementById('scan2Frame');
+    function openScan2Modal(src){ if(src) frame2.src = src; openAny(scan2Backdrop, closeScan2Top); }
+    function closeScan2Modal(){ closeAny(scan2Backdrop); }
+    openScanning2Btn?.addEventListener('click',e=>{ e.preventDefault(); openScan2Modal('scanning2.html'); });
+    scan2Backdrop?.addEventListener('click',e=>{ if(e.target===scan2Backdrop) closeScan2Modal(); });
+    closeScan2Top?.addEventListener('click',closeScan2Modal);
+    closeScan2Bottom?.addEventListener('click',closeScan2Modal);
+    openInNew2?.addEventListener('click',()=>window.open(frame2.src,'_blank','noopener'));
+
+    // ===== Avvikelse (ursprunglig) =====
+    const openDeviationBtn=document.getElementById('openDeviation');
+    const devBackdrop=document.getElementById('devBackdrop');
+    const closeDevTop=document.getElementById('closeDev');
+    const closeDevBottom=document.getElementById('closeDevBottom');
+    function openDevModal(){openAny(devBackdrop,closeDevTop);} function closeDevModal(){closeAny(devBackdrop);}
+    openDeviationBtn?.addEventListener('click',e=>{e.preventDefault();openDevModal();});
+    devBackdrop?.addEventListener('click',e=>{if(e.target===devBackdrop)closeDevModal();});
+    closeDevTop?.addEventListener('click',closeDevModal);
+    closeDevBottom?.addEventListener('click',closeDevModal);
+
+    // ===== ASN (ursprunglig) =====
+    const openASNBtn=document.getElementById('openASN');
+    const asnBackdrop=document.getElementById('asnBackdrop');
+    const closeAsnTop=document.getElementById('closeAsn');
+    const closeAsnBottom=document.getElementById('closeAsnBottom');
+    const openAsnLeft=document.getElementById('openAsnLeft');
+    const openAsnRight=document.getElementById('openAsnRight');
+    const asnLeftImg=asnBackdrop?.querySelector('.tabPanel:nth-child(1) img');
+    const asnRightImg=asnBackdrop?.querySelector('.tabPanel:nth-child(2) img');
+    function openAsnModal(){openAny(asnBackdrop,closeAsnTop);} 
+    function closeAsnModal(){closeAny(asnBackdrop);}
+    openASNBtn?.addEventListener('click',e=>{e.preventDefault();openAsnModal();});
+    asnBackdrop?.addEventListener('click',e=>{if(e.target===asnBackdrop)closeAsnModal();});
+    closeAsnTop?.addEventListener('click',closeAsnModal);
+    closeAsnBottom?.addEventListener('click',closeAsnModal);
+    openAsnLeft?.addEventListener('click',()=>asnLeftImg && window.open(asnLeftImg.src,'_blank','noopener'));
+    openAsnRight?.addEventListener('click',()=>asnRightImg && window.open(asnRightImg.src,'_blank','noopener'));
+
+    // ===== ASN 2 =====
+    const openASN2Btn=document.getElementById('openASN2');
+    const asn2Backdrop=document.getElementById('asn2Backdrop');
+    const closeAsn2Top=document.getElementById('closeAsn2');
+    const closeAsn2Bottom=document.getElementById('closeAsn2Bottom');
+    function openAsn2Modal(){ openAny(asn2Backdrop, closeAsn2Top); }
+    function closeAsn2Modal(){ closeAny(asn2Backdrop); }
+    openASN2Btn?.addEventListener('click',e=>{ e.preventDefault(); openAsn2Modal(); });
+    asn2Backdrop?.addEventListener('click',e=>{ if(e.target===asn2Backdrop) closeAsn2Modal(); });
+    closeAsn2Top?.addEventListener('click',closeAsn2Modal);
+    closeAsn2Bottom?.addEventListener('click',closeAsn2Modal);
+
+    // ===== Debitering =====
+    const openDebBtn = document.getElementById('openDeb');
+    const debBackdrop = document.getElementById('debBackdrop');
+    const closeDebTop = document.getElementById('closeDeb');
+    const closeDebBottom = document.getElementById('closeDebBottom');
+    const openInNewDeb = document.getElementById('openInNewDeb');
+    const debFrame = document.getElementById('debFrame');
+
+    function openDebModal(src){ if(src) debFrame.src = src; openAny(debBackdrop, closeDebTop); }
+    function closeDebModal(){ closeAny(debBackdrop); }
+
+    openDebBtn?.addEventListener('click', e => { e.preventDefault(); openDebModal('deb.html'); });
+    debBackdrop?.addEventListener('click', e => { if(e.target===debBackdrop) closeDebModal(); });
+    closeDebTop?.addEventListener('click', closeDebModal);
+    closeDebBottom?.addEventListener('click', closeDebModal);
+    openInNewDeb?.addEventListener('click', ()=>window.open(debFrame.src,'_blank','noopener'));
+
+    // ===== 2025 -> modal bild =====
+    const year2025Btn = document.getElementById('year2025Btn');
+    const year2025Backdrop = document.getElementById('year2025Backdrop');
+    const closeYear2025Top = document.getElementById('closeYear2025');
+    const closeYear2025Bottom = document.getElementById('closeYear2025Bottom');
+    function openYear2025Modal(){ openAny(year2025Backdrop, closeYear2025Top); }
+    function closeYear2025Modal(){ closeAny(year2025Backdrop); }
+    year2025Btn?.addEventListener('click', e=>{ e.preventDefault(); openYear2025Modal(); });
+    year2025Backdrop?.addEventListener('click', e=>{ if(e.target===year2025Backdrop) closeYear2025Modal(); });
+    closeYear2025Top?.addEventListener('click', closeYear2025Modal);
+    closeYear2025Bottom?.addEventListener('click', closeYear2025Modal);
+
+    // ===== ESC för alla modaler =====
+    const sumBackdrop = document.getElementById('sumBackdrop');
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'){
+        if(scanBackdrop?.classList.contains('open')){e.preventDefault();closeScanModal();return;}
+        if(scan2Backdrop?.classList.contains('open')){e.preventDefault();closeScan2Modal();return;}
+        if(devBackdrop?.classList.contains('open')){e.preventDefault();closeDevModal();return;}
+        if(asnBackdrop?.classList.contains('open')){e.preventDefault();closeAsnModal();return;}
+        if(asn2Backdrop?.classList.contains('open')){e.preventDefault();closeAsn2Modal();return;}
+        if(debBackdrop?.classList.contains('open')){e.preventDefault();closeDebModal();return;}
+        if(year2025Backdrop?.classList.contains('open')){e.preventDefault();closeYear2025Modal();return;}
+        if(sumBackdrop?.classList.contains('open')){e.preventDefault();closeSumModal();return;}
+      }
+    });
+
+    // ===== Karuseller =====
+    function setupCarousel(root,files){
+      if(!root) return;
+      let i=0;const img=root.querySelector('img');const prev=root.querySelector('.navPrev');const next=root.querySelector('.navNext');
+      function update(){const file=files[i];img.src=file;img.alt=`Bild ${file}`;}
+      prev?.addEventListener('click',()=>{i=(i-1+files.length)%files.length;update();});
+      next?.addEventListener('click',()=>{i=(i+1)%files.length;update();});
+      if(img) update();
+    }
+    setupCarousel(document.getElementById('carA'),['3.jpg','4.jpg','5.jpg','6.jpg']);
+    setupCarousel(document.getElementById('carB'),['1.png','2.png']);
+
+    // ===== Klicka för att visa tid =====
+    const revealBtn = document.getElementById('revealBtn');
+    const timeAnswer = document.getElementById('timeAnswer');
+    if (revealBtn && timeAnswer) {
+      revealBtn.addEventListener('click', ()=>{
+        const isHidden = timeAnswer.hasAttribute('hidden');
+        if (isHidden) { timeAnswer.removeAttribute('hidden'); revealBtn.setAttribute('aria-expanded','true'); }
+        else { timeAnswer.setAttribute('hidden',''); revealBtn.setAttribute('aria-expanded','false'); }
+      });
+    }
+    const revealBtn2 = document.getElementById('revealBtn2');
+    const timeAnswer2 = document.getElementById('timeAnswer2');
+    if (revealBtn2 && timeAnswer2) {
+      revealBtn2.addEventListener('click', ()=>{
+        const isHidden = timeAnswer2.hasAttribute('hidden');
+        if (isHidden) { timeAnswer2.removeAttribute('hidden'); revealBtn2.setAttribute('aria-expanded','true'); }
+        else { timeAnswer2.setAttribute('hidden',''); revealBtn2.setAttribute('aria-expanded','false'); }
+      });
+    }
+
+    // ===== År-slide interaktioner =====
+    const year2024Btn = document.getElementById('year2024Btn');
+    const year2024Content = document.getElementById('year2024Content');
+    if (year2024Btn && year2024Content) {
+      year2024Btn.addEventListener('click', ()=>{
+        const hidden = year2024Content.hasAttribute('hidden');
+        if (hidden) { year2024Content.removeAttribute('hidden'); year2024Btn.setAttribute('aria-expanded','true'); }
+        else { year2024Content.setAttribute('hidden',''); year2024Btn.setAttribute('aria-expanded','false'); }
+      });
+    }
+
+    // ===== Kalkyl – logik + summa =====
+    const nf = new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 2 });
+
+    let lastTotalA = 0;
+    let lastTotalB = 0;
+
+    function toNum(v){
+      if (typeof v !== 'string') return Number(v) || 0;
+      const n = v.replace(',', '.');
+      const x = parseFloat(n);
+      return isNaN(x) ? 0 : x;
+    }
+    function calc(prefix){
+      const count = toNum(document.getElementById(prefix + '_count').value);
+      const mins  = toNum(document.getElementById(prefix + '_min').value);
+      const rate  = toNum(document.getElementById(prefix + '_rate').value);
+      const total = count * (mins/60) * rate;
+      document.getElementById(prefix + '_result').textContent = nf.format(total) + ' kr';
+      if(prefix==='calcA') lastTotalA = total;
+      if(prefix==='calcB') lastTotalB = total;
+    }
+
+    ['calcA','calcB'].forEach(p => {
+      ['_count','_min','_rate'].forEach(s => {
+        const el = document.getElementById(p + s);
+        if (el) el.addEventListener('input', () => calc(p));
+      });
+      calc(p);
+    });
+
+    // Summa-modal
+    const openSumBtn = document.getElementById('openSum');
+    const closeSumTop = document.getElementById('closeSumTop');
+    const closeSumBottom = document.getElementById('closeSumBottom');
+    const sumValueEl = document.getElementById('sumValue');
+
+    function openSumModal(){
+      const sum = lastTotalA + lastTotalB;
+      sumValueEl.textContent = nf.format(sum) + ' kr';
+      openAny(sumBackdrop, closeSumTop);
+    }
+    function closeSumModal(){ closeAny(sumBackdrop); }
+
+    openSumBtn?.addEventListener('click', e=>{ e.preventDefault(); openSumModal(); });
+    sumBackdrop?.addEventListener('click', e=>{ if(e.target===sumBackdrop) closeSumModal(); });
+    closeSumTop?.addEventListener('click', closeSumModal);
+    closeSumBottom?.addEventListener('click', closeSumModal);
+  </script>
+</body>
+</html>
