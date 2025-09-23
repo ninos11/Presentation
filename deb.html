@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avvikelser – Markering → Timmar</title>
+  <style>
+    :root{
+      --bg:#0b0c10; --card:#111218; --muted:#8a8f98; --text:#e6e8eb; --accent:#3aa3ff; --border:#23242c;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:linear-gradient(180deg,#0b0c10 0%,#0d1117 100%); color:var(--text)}
+    .container{max-width:980px; margin:0 auto; padding:24px}
+    h1{font-size:26px; margin:0 0 8px}
+    p.sub{color:var(--muted); margin:0 0 18px; font-size:14px}
+
+    .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-bottom:16px}
+    .btn{appearance:none; border:1px solid var(--border); background:#141722; color:var(--text); padding:8px 12px; border-radius:10px; cursor:pointer; font-size:14px}
+    .btn.primary{background:var(--accent); color:#0a0a0a; border-color:transparent}
+    .btn:disabled{opacity:.6; cursor:not-allowed}
+    .select, .input{border:1px solid var(--border); background:#0f1320; color:var(--text); padding:8px 10px; border-radius:10px; font-size:14px}
+    .pill{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:#0f1320; padding:6px 10px; border-radius:999px; font-size:12px; color:#cbd5e1}
+
+    .card{background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.35)}
+    .card h2{font-size:16px; margin:0; padding:14px 16px; border-bottom:1px solid var(--border); color:#dfe3ea}
+    .content{padding:14px 16px}
+
+    .list{display:grid; grid-template-columns:1fr; gap:10px; max-height:520px; overflow:auto}
+    .row{display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid var(--border); background:#0f1320; border-radius:12px; padding:10px 12px}
+    .row:hover{background:#11182a}
+    .row .left{display:flex; align-items:center; gap:12px}
+    .row .badge{font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:#cbd5e1; background:#0b1120}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .muted{color:var(--muted)}
+
+    .summary{display:flex; flex-wrap:wrap; gap:12px; align-items:center; font-size:14px}
+    .summary strong{font-size:16px}
+    .kpi{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
+    .kpi .k{border:1px solid var(--border); background:#0f1320; border-radius:12px; padding:12px}
+    .kpi .k .t{font-size:12px; color:var(--muted)}
+    .kpi .k .v{font-size:20px; font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Avvikelser – markera och se timmar</h1>
+      <p class="sub">Varje markerad avvikelse räknas som <strong>5 minuter</strong>. Välj poster nedan – totalen visas automatiskt i timmar och du kan exportera till PDF.</p>
+    </header>
+
+    <div class="toolbar">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        <button id="btnToggleAll" class="btn">Markera alla (visade)</button>
+        <label class="pill">Month
+          <select id="range" class="select" style="margin-left:8px">
+            <option value="6">Januari</option>
+            <option value="12" selected>Februari</option>
+            <option value="24">March</option>
+            <option value="24">April</option>
+            <option value="24">Maj</option>
+            <option value="24">Juni</option>
+            <option value="24">Juli</option>
+            <option value="24">Augusti</option>
+            <option value="24">September</option>
+            <option value="24">Oktober</option>
+            <option value="24">November</option>
+            <option value="24">December</option>
+          </select>
+        </label>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <input id="search" class="input" placeholder="Sök artikel, SSCC eller antal…" style="width:260px"/>
+        <button id="btnRegenerate" class="btn">Regenerera data</button>
+        <button id="btnExport" class="btn primary" disabled>Exportera markerade (PDF)</button>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2>Val och total</h2>
+      <div class="content">
+        <div class="summary">
+          <div>Totalt poster: <strong><span id="countTotal">0</span></strong></div>
+          <div>Visade: <strong><span id="countVisible">0</span></strong></div>
+          <div>Markerade: <strong><span id="countSelected">0</span></strong></div>
+        </div>
+        <div class="kpi">
+          <div class="k">
+            <div class="t">Totala minuter (5 min × markerade)</div>
+            <div class="v" id="sumMinutes">0</div>
+          </div>
+          <div class="k">
+            <div class="t">Totala timmar (decimaltal)</div>
+            <div class="v" id="sumHours">0</div>
+          </div>
+          <div class="k">
+            <div class="t">Format HH:MM</div>
+            <div class="v" id="sumHHMM">00:00</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Avvikelser (klicka för att markera)</h2>
+      <div class="content">
+        <div id="list" class="list"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Ladda logik från extern fil (CSP-säkert) -->
+  <script src="app.js" defer></script>
+</body>
+</html>

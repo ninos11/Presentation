@@ -1,0 +1,112 @@
+:root{
+  --bg:#0b0f19;          /* Bakgrundsfärg */
+  --fg:#e6e9f2;          /* Textfärg */
+  --muted:#9aa3b2;       /* Dämpad text */
+  --accent:#6ee7ff;      /* Accentfärg */
+  --accent-2:#a78bfa;    /* Sekundär accent */
+  --card:#121829;        /* Kort/slide-bakgrund */
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+html,body{
+  height:100%;
+  margin:0;
+  background: radial-gradient(1200px 800px at 80% 10%, rgba(110,231,255,.08), transparent 40%),
+              radial-gradient(1000px 700px at 10% 90%, rgba(167,139,250,.08), transparent 40%),
+              var(--bg);
+  color:var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  overflow:hidden;
+}
+
+/* Layout */
+.deck{
+  position:relative;
+  width:100vw; height:100vh;
+  display:grid;
+  grid-template-rows: 1fr auto; /* slide + footer */
+}
+
+.slide{
+  display:none;
+  align-items:center; justify-content:center;
+  padding:6vh 6vw; box-sizing:border-box;
+  animation: fade .35s ease;
+}
+
+.slide.active{ display:flex; }
+
+@keyframes fade{ from{opacity:.6; transform:translateY(4px)} to{opacity:1; transform:none} }
+
+.card{
+  width:min(1100px, 100%);
+  min-height:62vh;
+  background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+  backdrop-filter: blur(6px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:28px; box-shadow: var(--shadow);
+  padding:6vh 6vw; box-sizing:border-box;
+}
+
+h1{ font-size: clamp(2rem, 4vw + .5rem, 4.5rem); line-height:1.05; margin: 0 0 .6rem 0; }
+h2{ font-size: clamp(1.5rem, 2.3vw + .5rem, 2.4rem); line-height:1.15; margin:.2rem 0 1rem; color:var(--accent)}
+p{ font-size: clamp(1.05rem, 1.2vw + .5rem, 1.4rem); color:var(--fg); }
+.muted{ color:var(--muted) }
+
+ul{ margin:.8rem 0 0 1rem; font-size: clamp(1.05rem, 1.2vw + .5rem, 1.35rem); }
+li{ margin:.5rem 0; }
+
+.tag{
+  display:inline-flex; gap:.5rem; align-items:center;
+  font-size:.95rem; letter-spacing:.04em; text-transform:uppercase;
+  background: rgba(110,231,255,.08);
+  color: var(--accent);
+  padding:.4rem .7rem; border:1px solid rgba(110,231,255,.25);
+  border-radius:999px;
+}
+
+.cta{
+  display:inline-block; margin-top:1.25rem;
+  padding:.9rem 1.2rem; border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  color:var(--fg); text-decoration:none; font-weight:600;
+  box-shadow: var(--shadow);
+}
+
+.grid{ display:grid; gap:1rem; grid-template-columns: repeat(2, minmax(0,1fr)); }
+.kpi{ background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:1rem 1.2rem; }
+.kpi .val{ font-size: clamp(1.8rem, 3vw + .5rem, 3rem); font-weight:800; }
+.kpi .label{ color:var(--muted) }
+
+footer.controls{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: .9rem 1.2rem; box-sizing:border-box;
+  border-top:1px solid rgba(255,255,255,.08);
+  background: linear-gradient(180deg, rgba(0,0,0,.0), rgba(255,255,255,.02));
+}
+
+.progress{ position:relative; height:8px; flex:1; margin:0 1rem; background: rgba(255,255,255,.06); border-radius:999px; overflow:hidden; }
+.bar{ position:absolute; inset:0; width:0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+.btns{ display:flex; gap:.5rem; }
+.btn{
+  user-select:none;
+  cursor:pointer; border-radius:12px; padding:.5rem .8rem;
+  background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+}
+
+/* Smal skärm */
+@media (max-width: 680px){
+  .grid{ grid-template-columns: 1fr; }
+  .card{ padding: 5vh 5vw; }
+}
+
+/* Utskrift till PDF: en slide per sida */
+@media print{
+  body{ overflow:visible; background:white; color:black }
+  .deck{ display:block; height:auto }
+  .slide{ display:block; page-break-after:always; box-shadow:none }
+  .card{ border: none; box-shadow:none; background:white }
+  footer.controls{ display:none }
+}

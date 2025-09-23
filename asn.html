@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inköpsorder – Exempel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      color: #000;
+      background: #f5f5f5;
+    }
+    .container {
+      padding: 10px;
+    }
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    .topbar div {
+      margin: 2px 8px;
+    }
+    .filters {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+    .filters label {
+      margin-right: 15px;
+    }
+    .content {
+      display: flex;
+      margin-top: 5px;
+    }
+    .left {
+      flex: 1;
+      margin-right: 5px;
+      background: #fff;
+      border: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+    }
+    .table-toolbar {
+      border-bottom: 1px solid #ccc;
+      padding: 4px;
+      font-size: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    thead th {
+      background: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+      padding: 4px;
+      text-align: left;
+    }
+    tbody td {
+      border-bottom: 1px solid #eee;
+      padding: 4px;
+    }
+    .right {
+      width: 300px;
+      background: #fff;
+      border: 1px solid #ccc;
+      font-size: 12px;
+    }
+    .section {
+      border-bottom: 1px solid #ccc;
+    }
+    .section h3 {
+      margin: 0;
+      background: #eee;
+      padding: 5px 8px;
+      font-size: 13px;
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      padding: 5px 8px;
+      gap: 3px;
+    }
+    .kv .k {
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div>Lagerlagd: Exempel</div>
+      <div>Lager: EXEMPEL_IN</div>
+      <div>Datum: 2025-09-21</div>
+      <div>Leverantör: EXEMPEL</div>
+      <div>Faktura: EX-8748-01</div>
+      <div>Rader: 153</div>
+    </div>
+    <div class="filters">
+      <label><input type="checkbox" checked> Visa lastbärare</label>
+      <label><input type="checkbox" checked> Visa gods</label>
+      <label><input type="checkbox"> Visa sändningar</label>
+      <b>Inköpsorderrader</b>
+    </div>
+    <div class="content">
+      <div class="left">
+        <div class="table-toolbar">153 / 153 Max</div>
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Inköp</th>
+                <th>Radr</th>
+                <th>Artikelnummer</th>
+                <th>Artikel</th>
+                <th>Färgnamn</th>
+                <th>Storlek</th>
+                <th>Artikelgrupp</th>
+                <th>Plockplats</th>
+                <th>Batch</th>
+                <th>KolliTyp</th>
+                <th>Mottaget</th>
+                <th>Aviserat</th>
+                <th>Avvikelse</th>
+                <th>I Lager</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>78785</td>
+                <td>1</td>
+                <td>EX-001</td>
+                <td>EXEMPEL T-SHIRT</td>
+                <td>GRÅ</td>
+                <td>XS</td>
+                <td>EXEMPEL</td>
+                <td>AUTO</td>
+                <td>202504</td>
+                <td>CARTON</td>
+                <td>7</td>
+                <td>7</td>
+                <td>0</td>
+                <td>24</td>
+              </tr>
+              <tr>
+                <td>78785</td>
+                <td>2</td>
+                <td>EX-002</td>
+                <td>EXEMPEL HOODIE</td>
+                <td>VIT</td>
+                <td>M</td>
+                <td>EXEMPEL</td>
+                <td>AUTO</td>
+                <td>202504</td>
+                <td>CARTON</td>
+                <td>10</td>
+                <td>10</td>
+                <td>0</td>
+                <td>30</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="right">
+        <div class="section">
+          <h3>Inköpsorderinformation</h3>
+          <div class="kv">
+            <div class="k">Inköpsorder-ID</div><div>34937</div>
+            <div class="k">Inköpsordernr</div><div>EX-78785</div>
+            <div class="k">Datum</div><div>2025-09-21</div>
+            <div class="k">Fakturanr</div><div>EX-8748-01</div>
+            <div class="k">Leverantör</div><div>EXEMPEL AB</div>
+            <div class="k">Kommentar</div><div>EXEMPEL_IN</div>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Debiteringar</h3>
+          <div class="kv">
+            <div class="k">Status</div><div>Exempel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
