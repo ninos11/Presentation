@@ -121,11 +121,14 @@
     <!-- SLIDE 1 -->
     <section class="slide active" data-title="Titel">
       <div class="card">
-        <span class="tag">Presentation</span>
-        <h1>Chrome Extension</h1>
+        </br>
+        </br>
+        </br>
+        </br>
+        </br>
         <h2>Inleverans – Avvik-notering / debitering</h2>
-        <p class="muted">Av: Ninos Chimon • 25 September 2025</p>
-        <a class="cta" href="#" onclick="nextSlide(); return false;">Börja ▶</a>
+        <p class="muted">Av: Ninos Chimon - 02.11.2026</p>
+        <a class="cta" href="#" onclick="nextSlide(); return false;">Börja</a>
       </div>
     </section>
 
@@ -201,12 +204,21 @@
         </div>
 
         <!-- 2025 -->
-        <button id="year2024Btn" class="linklike yearBtn" aria-expanded="false" aria-controls="year2024Content">
-          2024
+        <button id="year2025Btn" class="linklike yearBtn" aria-expanded="false" aria-controls="year2025Content">
+          2025
         </button>
-        <div id="year2024Content" hidden class="muted yearInfo">
-          1222 avvikelser
+        <div id="year2025Content" hidden class="muted yearInfo">
+          1592 avvikelser
         </div>
+
+        <!-- 2026 -->
+        <button id="year2026Btn" class="linklike yearBtn" aria-expanded="false" aria-controls="year2026Content">
+          2026
+        </button>
+        <div id="year2026Content" hidden class="muted yearInfo">
+          1224 avvikelser oktober
+        </div>
+
       </div>
     </section>
     
@@ -388,26 +400,6 @@
     </div>
   </div>
 
-  <!-- ===== Modal: 2025-bild ===== -->
-  <div class="backdrop" id="year2025Backdrop" role="presentation">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="year2025Title" id="year2025Modal">
-      <header>
-        <h2 id="year2025Title">2025</h2>
-        <button class="iconbtn" id="closeYear2025" aria-label="Stäng dialog">✕</button>
-      </header>
-      <div class="body">
-        <div class="split" style="padding:0">
-          <div class="tabPanel" style="border:none">
-            <img src="9.jpg" alt="2025 – bild" class="imgFit" />
-          </div>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="iconbtn" id="closeYear2025Bottom">Stäng</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ===== Modal: SUMMA (glas/transparent + blurad bakgrund) ===== -->
   <div class="backdrop blur" id="sumBackdrop" role="presentation">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sumTitle" id="sumModal" style="max-width:min(600px,90vw);width:600px">
@@ -555,18 +547,6 @@
     closeDebBottom?.addEventListener('click', closeDebModal);
     openInNewDeb?.addEventListener('click', ()=>window.open(debFrame.src,'_blank','noopener'));
 
-    // ===== 2025 -> modal bild =====
-    const year2025Btn = document.getElementById('year2025Btn');
-    const year2025Backdrop = document.getElementById('year2025Backdrop');
-    const closeYear2025Top = document.getElementById('closeYear2025');
-    const closeYear2025Bottom = document.getElementById('closeYear2025Bottom');
-    function openYear2025Modal(){ openAny(year2025Backdrop, closeYear2025Top); }
-    function closeYear2025Modal(){ closeAny(year2025Backdrop); }
-    year2025Btn?.addEventListener('click', e=>{ e.preventDefault(); openYear2025Modal(); });
-    year2025Backdrop?.addEventListener('click', e=>{ if(e.target===year2025Backdrop) closeYear2025Modal(); });
-    closeYear2025Top?.addEventListener('click', closeYear2025Modal);
-    closeYear2025Bottom?.addEventListener('click', closeYear2025Modal);
-
     // ===== ESC för alla modaler =====
     const sumBackdrop = document.getElementById('sumBackdrop');
     document.addEventListener('keydown',e=>{
@@ -577,7 +557,6 @@
         if(asnBackdrop?.classList.contains('open')){e.preventDefault();closeAsnModal();return;}
         if(asn2Backdrop?.classList.contains('open')){e.preventDefault();closeAsn2Modal();return;}
         if(debBackdrop?.classList.contains('open')){e.preventDefault();closeDebModal();return;}
-        if(year2025Backdrop?.classList.contains('open')){e.preventDefault();closeYear2025Modal();return;}
         if(sumBackdrop?.classList.contains('open')){e.preventDefault();closeSumModal();return;}
       }
     });
@@ -591,7 +570,7 @@
       next?.addEventListener('click',()=>{i=(i+1)%files.length;update();});
       if(img) update();
     }
-    setupCarousel(document.getElementById('carA'),['3.jpg','4.jpg','5.jpg','6.jpg']);
+    setupCarousel(document.getElementById('carA'),['3.jpg','4.jpg','5.jpg']);
     setupCarousel(document.getElementById('carB'),['1.png','2.png']);
 
     // ===== Klicka för att visa tid =====
@@ -615,15 +594,16 @@
     }
 
     // ===== År-slide interaktioner =====
-    const year2024Btn = document.getElementById('year2024Btn');
-    const year2024Content = document.getElementById('year2024Content');
-    if (year2024Btn && year2024Content) {
-      year2024Btn.addEventListener('click', ()=>{
-        const hidden = year2024Content.hasAttribute('hidden');
-        if (hidden) { year2024Content.removeAttribute('hidden'); year2024Btn.setAttribute('aria-expanded','true'); }
-        else { year2024Content.setAttribute('hidden',''); year2024Btn.setAttribute('aria-expanded','false'); }
-      });
-    }
+    document.querySelectorAll('.yearBtn').forEach(yearBtn => {
+      const yearContent = document.getElementById(yearBtn.getAttribute('aria-controls'));
+      if (yearContent) {
+        yearBtn.addEventListener('click', ()=>{
+          const hidden = yearContent.hasAttribute('hidden');
+          if (hidden) { yearContent.removeAttribute('hidden'); yearBtn.setAttribute('aria-expanded','true'); }
+          else { yearContent.setAttribute('hidden',''); yearBtn.setAttribute('aria-expanded','false'); }
+        });
+      }
+    });
 
     // ===== Kalkyl – logik + summa =====
     const nf = new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 2 });
