@@ -107,12 +107,35 @@
       font-weight:900; text-align:center; padding:18px 10px;
     }
 
+    .articleSummarySlide{align-items:stretch}
+    .articleSummaryCard{
+      width:min(1200px,100%);height:100%;min-height:0;max-height:100%;
+      display:flex;flex-direction:column;gap:12px;padding:24px;overflow:hidden;
+    }
+    .articleSummaryCard h2{margin:0}
+    .articleUpload{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+    .articleFileInput{max-width:100%;padding:10px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.04);color:var(--fg)}
+    .articleFileInput::file-selector-button{margin-right:12px;padding:8px 12px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:rgba(255,255,255,.08);color:var(--fg);cursor:pointer}
+    .articlePercentages{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+    .articlePercentField{display:grid;gap:5px}
+    .articlePercentField input{width:120px;padding:9px 10px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(255,255,255,.04);color:var(--fg);font:inherit}
+    .articleExportButton{padding:10px 14px;border:1px solid rgba(110,231,255,.35);border-radius:10px;background:rgba(110,231,255,.1);color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
+    .articleExportButton:disabled{opacity:.45;cursor:not-allowed}
+    .articleExportHint{margin:0;font-size:.9rem}
+    .articleExportHint[data-error="true"]{color:#fca5a5}
+    .articleStatus{min-height:1.4em;margin:0;font-size:.95rem}
+    .articleStatus[data-error="true"]{color:#fca5a5}
     @media (max-width: 900px){
       .modal{width:95vw}
       .split{flex-direction:column}
       .calcInput{width:95px}
       .calcRow{font-size:15px}
       .calcResult{font-size:19px}
+    }
+    @media (max-width: 680px){
+      .articleSummaryCard{padding:18px}
+      .articleTable{font-size:.85rem}
+      .articleTable th,.articleTable td{padding:8px}
     }
   </style>
 </head>
@@ -142,6 +165,7 @@
           <li><a href="#" id="openScanning" class="linklike" aria-haspopup="dialog" aria-controls="scanModal" role="link">Scanning</a></li>
           <li><a href="#" id="openDeviation" class="linklike" aria-haspopup="dialog" aria-controls="devModal" role="link">Avvikelse notering</a></li>
           <li><a href="#" id="openASN" class="linklike" aria-haspopup="dialog" aria-controls="asnModal" role="link">ASN-kontroll</a></li>
+          <li><a href="#8" class="linklike goArticleSummary">Artikelöversikt</a></li>
           <li>Claims</li>
           <li>Lagerlagd</li>
         </ul>
@@ -179,6 +203,7 @@
           <li><a href="#" id="openScanning2" class="linklike" aria-haspopup="dialog" aria-controls="scan2Modal" role="link">Scanning</a></li>
           <li><span class="strike">Avvikelse notering</span></li>
           <li><a href="#" id="openASN2" class="linklike" aria-haspopup="dialog" aria-controls="asn2Modal" role="link">ASN-kontroll (Mycket lättre)</a></li>
+          <li><a href="#8" class="linklike goArticleSummary">Artikelöversikt</a></li>
           <li><span class="strike">Claims</span></li>
           <li>Lagerlagd</li>
           <li id="timeItem2">
@@ -273,7 +298,35 @@
       </div>
     </section>
 
-    <!-- SLIDE 7 Avslut -->
+    <!-- SLIDE 8 Artikelöversikt -->
+    <section class="slide articleSummarySlide" data-title="Artikelöversikt">
+      <div class="card articleSummaryCard">
+        <h2>Artikelöversikt</h2>
+        <p class="muted" style="margin:0;font-size:1rem">
+          Ladda upp en Excel- eller CSV-fil med kolumnerna Artikelnummer och Aviserat.
+          Endast Aviserat används. Rader med samma artikelnummer slås ihop.
+        </p>
+        <div class="articleUpload">
+          <label for="articleFile" class="muted">Välj fil</label>
+          <input id="articleFile" class="articleFileInput" type="file" accept=".xlsx,.xls,.csv,.tsv" />
+        </div>
+        <div class="articlePercentages">
+          <label class="articlePercentField">
+            <span class="muted">Autostore (%)</span>
+            <input id="autostorePercent" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="t.ex. 49" aria-describedby="articleExportHint" />
+          </label>
+          <label class="articlePercentField">
+            <span class="muted">Buffert (%)</span>
+            <input id="bufferPercent" type="number" readonly aria-label="Buffertprocent, automatiskt beräknad" placeholder="Räknas ut automatiskt" />
+          </label>
+          <button id="downloadLowwatermark" class="articleExportButton" type="button" disabled>Ladda ner Lowwatermark.xlsx</button>
+        </div>
+        <p id="articleExportHint" class="articleExportHint muted">Ange Autostore mellan 0 och 100 procent efter att filen har lästs in.</p>
+        <p id="articleStatus" class="articleStatus muted" role="status" aria-live="polite">Ingen fil uppladdad.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 9 Avslut -->
     <section class="slide" data-title="Tack">
       <div class="card">
         <h1>Tack! 🙌</h1>
@@ -288,7 +341,7 @@
         <button class="btn" id="next" aria-label="Nästa (→)">Nästa →</button>
       </div>
       <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
-      <div class="muted" id="counter">1 / 7</div>
+      <div class="muted" id="counter">1 / 9</div>
     </footer>
   </div>
 
@@ -453,6 +506,244 @@
       if(e.key==='End'){e.preventDefault();show(slides.length-1);}
     });
     nextBtn?.addEventListener('click',nextSlide); prevBtn?.addEventListener('click',prevSlide);
+    document.querySelectorAll('.goArticleSummary').forEach(link=>{
+      link.addEventListener('click',e=>{
+        e.preventDefault();
+        const index=slides.findIndex(slide=>slide.dataset.title==='Artikelöversikt');
+        if(index!==-1) show(index);
+      });
+    });
+
+    // ===== Artikelöversikt: filimport och summering per artikel =====
+    const articleFileInput=document.getElementById('articleFile');
+    const articleStatus=document.getElementById('articleStatus');
+    const autostorePercentInput=document.getElementById('autostorePercent');
+    const bufferPercentInput=document.getElementById('bufferPercent');
+    const downloadLowwatermarkButton=document.getElementById('downloadLowwatermark');
+    const articleExportHint=document.getElementById('articleExportHint');
+    const articleFields=['artikelnummer','aviserat'];
+    let sheetJsPromise;
+    let sheetJsReady=Boolean(window.XLSX);
+    let sheetJsLoadError='';
+    let importedArticles=[];
+
+    function setArticleStatus(message,isError=false){
+      articleStatus.textContent=message;
+      articleStatus.dataset.error=String(isError);
+    }
+
+    function updateLowwatermarkControls(){
+      const rawValue=autostorePercentInput.value.trim();
+      const percent=rawValue===''?NaN:Number(rawValue);
+      const valid=Number.isInteger(percent)&&percent>=0&&percent<=100;
+      bufferPercentInput.value=valid?String(100-percent):'';
+      autostorePercentInput.setAttribute('aria-invalid',String(rawValue!==''&&!valid));
+      downloadLowwatermarkButton.disabled=!valid||importedArticles.length===0||!sheetJsReady;
+      if(rawValue!==''&&!valid){
+        articleExportHint.textContent='Ange ett heltal mellan 0 och 100.';
+        articleExportHint.dataset.error='true';
+      }else if(importedArticles.length&&sheetJsLoadError){
+        articleExportHint.textContent=sheetJsLoadError;
+        articleExportHint.dataset.error='true';
+      }else if(importedArticles.length&&!sheetJsReady){
+        articleExportHint.textContent='Förbereder Excel-export...';
+        articleExportHint.dataset.error='false';
+      }else if(rawValue===''||valid){
+        articleExportHint.textContent=rawValue===''?'Ange Autostore mellan 0 och 100 procent efter att filen har lästs in.':'Buffert är resten av 100 %. Exportvärdet avrundas till närmaste heltal.';
+        articleExportHint.dataset.error='false';
+      }
+      return valid?percent:null;
+    }
+
+    function parseDelimitedRows(text,delimiter){
+      const rows=[];let row=[];let field='';let quoted=false;
+      for(let i=0;i<text.length;i++){
+        const char=text[i];
+        if(char==='"'){
+          if(quoted&&text[i+1]==='"'){field+='"';i++;}
+          else quoted=!quoted;
+        }else if(char===delimiter&&!quoted){
+          row.push(field);field='';
+        }else if((char==='\n'||char==='\r')&&!quoted){
+          if(char==='\r'&&text[i+1]==='\n')i++;
+          row.push(field);rows.push(row);row=[];field='';
+        }else field+=char;
+      }
+      if(field!==''||row.length){row.push(field);rows.push(row);}
+      return rows;
+    }
+
+    function findArticleHeader(rows){
+      const normalize=value=>String(value??'').trim().toLocaleLowerCase('sv-SE').replace(/\s+/g,'');
+      const searchRows=rows.slice(0,50);
+      const headerIndex=searchRows.findIndex(row=>{
+        const headers=row.map(normalize);
+        return articleFields.every(field=>headers.includes(field));
+      });
+      if(headerIndex===-1)throw new Error('Filen saknar kolumnen Artikelnummer eller Aviserat.');
+      const headers=rows[headerIndex].map(normalize);
+      return {headerIndex,columns:Object.fromEntries(articleFields.map(field=>[field,headers.indexOf(field)]))};
+    }
+
+    function parseArticleQuantity(value,rowNumber,columnName){
+      if(value===null||value===undefined||String(value).trim()==='')return 0;
+      if(typeof value==='number'){
+        if(Number.isFinite(value))return value;
+      }else{
+        let normalized=String(value).trim().replace(/[\s\u00a0]/g,'');
+        if(normalized.includes(',')&&normalized.includes('.')){
+          normalized=normalized.lastIndexOf(',')>normalized.lastIndexOf('.')
+            ?normalized.replace(/\./g,'').replace(',','.')
+            :normalized.replace(/,/g,'');
+        }else normalized=normalized.replace(',','.');
+        const parsed=Number(normalized);
+        if(Number.isFinite(parsed))return parsed;
+      }
+      throw new Error(`Ogiltigt antal i kolumnen ${columnName}, rad ${rowNumber}: "${value}".`);
+    }
+
+    function loadSheetJS(){
+      if(window.XLSX)return Promise.resolve(window.XLSX);
+      if(!sheetJsPromise){
+        sheetJsPromise=new Promise((resolve,reject)=>{
+          const script=document.createElement('script');
+          script.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+          script.onload=()=>{
+            if(window.XLSX)resolve(window.XLSX);
+            else{sheetJsPromise=null;reject(new Error('Excel-läsaren kunde inte startas.'));}
+          };
+          script.onerror=()=>{
+            sheetJsPromise=null;
+            reject(new Error('Excel-läsaren kunde inte laddas. Kontrollera internetanslutningen eller välj en CSV-fil.'));
+          };
+          document.head.appendChild(script);
+        });
+      }
+      return sheetJsPromise;
+    }
+
+    function aggregateArticleRows(rows){
+      const {headerIndex,columns}=findArticleHeader(rows);
+      const articles=new Map();
+      let previousArticleKey='';
+      for(let i=headerIndex+1;i<rows.length;i++){
+        const row=rows[i];
+        if(!row||row.every(value=>String(value??'').trim()===''))continue;
+        const avisValue=row[columns.aviserat];
+        const avis=parseArticleQuantity(avisValue,i+1,'Aviserat');
+        let article=String(row[columns.artikelnummer]??'').trim();
+        if(!article&&String(avisValue??'').trim()===''){
+          continue;
+        }
+        if(!article){
+          if(!previousArticleKey){
+            continue;
+          }
+          article=articles.get(previousArticleKey).article;
+        }
+        const key=article.toLocaleLowerCase('sv-SE');
+        const total=articles.get(key)||{article,avis:0};
+        total.avis+=avis;
+        if(!Number.isFinite(total.avis)){
+          throw new Error(`Summan blir för stor för artikel ${article}.`);
+        }
+        articles.set(key,total);
+        previousArticleKey=key;
+      }
+      return Array.from(articles.values());
+    }
+
+    async function readArticleFile(file){
+      const extension=file.name.split('.').pop().toLowerCase();
+      if(extension==='csv'||extension==='tsv'){
+        const text=new TextDecoder('utf-8').decode(await file.arrayBuffer()).replace(/^\uFEFF/,'');
+        const firstLine=text.split(/\r?\n/,1)[0]||'';
+        const delimiter=extension==='tsv'?'\t':[';','\t',','].sort((a,b)=>firstLine.split(b).length-firstLine.split(a).length)[0];
+        return parseDelimitedRows(text,delimiter);
+      }
+      const xlsx=await loadSheetJS();
+      const workbook=xlsx.read(await file.arrayBuffer(),{type:'array',raw:true});
+      const firstSheet=workbook.SheetNames[0];
+      if(!firstSheet)throw new Error('Excel-filen innehåller inget kalkylblad.');
+      return xlsx.utils.sheet_to_json(workbook.Sheets[firstSheet],{header:1,raw:false,defval:''});
+    }
+
+    async function prepareArticleExport(articles){
+      importedArticles=articles;
+      updateLowwatermarkControls();
+      if(!articles.length){
+        setArticleStatus('Inga artiklar hittades i filen.');
+        return;
+      }
+      if(articles.length){
+        sheetJsLoadError='';
+        try{
+          await loadSheetJS();
+          sheetJsReady=true;
+          updateLowwatermarkControls();
+          setArticleStatus('Filen är klar för export.');
+        }catch(error){
+          sheetJsReady=false;
+          sheetJsLoadError=error instanceof Error?error.message:'Excel-exporten kunde inte förberedas.';
+          updateLowwatermarkControls();
+          setArticleStatus(`Kunde inte förbereda exporten: ${sheetJsLoadError}`,true);
+        }
+      }
+    }
+
+    async function downloadLowwatermark(){
+      const autostorePercent=updateLowwatermarkControls();
+      if(autostorePercent===null||importedArticles.length===0)return;
+      try{
+        const xlsx=await loadSheetJS();
+        const rows=[
+          ['artikelnummer','aviserad','articledef.articlefreetext1','plockplats'],
+          ...importedArticles.map(item=>{
+            const totalPcs=item.avis;
+            return [item.article,totalPcs,Math.round(totalPcs*autostorePercent/100),'autostore'];
+          })
+        ];
+        const worksheet=xlsx.utils.aoa_to_sheet(rows);
+        const workbook=xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(workbook,worksheet,'Lowwatermark');
+        const output=xlsx.write(workbook,{bookType:'xlsx',type:'array'});
+        const url=URL.createObjectURL(new Blob([output],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+        const link=document.createElement('a');
+        link.href=url;
+        link.download='lowwatermark.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+        setArticleStatus(`Lowwatermark.xlsx laddades ner med ${importedArticles.length} artiklar.`);
+      }catch(error){
+        const message=error instanceof Error?error.message:'Okänt fel vid skapande av Excel-filen.';
+        setArticleStatus(`Kunde inte skapa Lowwatermark-filen: ${message}`,true);
+      }
+    }
+
+    autostorePercentInput.addEventListener('input',updateLowwatermarkControls);
+    downloadLowwatermarkButton.addEventListener('click',downloadLowwatermark);
+
+    articleFileInput.addEventListener('change',async event=>{
+      const file=event.target.files?.[0];
+      if(!file)return;
+      importedArticles=[];
+      sheetJsReady=Boolean(window.XLSX);
+      sheetJsLoadError='';
+      updateLowwatermarkControls();
+      setArticleStatus(`Läser ${file.name}...`);
+      try{
+        const rows=await readArticleFile(file);
+        const articles=aggregateArticleRows(rows);
+        await prepareArticleExport(articles);
+      }catch(error){
+        const message=error instanceof Error?error.message:'Okänt fel vid filinläsning.';
+        setArticleStatus(`Kunde inte läsa filen: ${message}`,true);
+      }finally{
+        articleFileInput.value='';
+      }
+    });
 
     // ===== Modaler helper =====
     let lastFocused=null;
